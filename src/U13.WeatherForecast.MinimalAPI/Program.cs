@@ -1,13 +1,19 @@
 #region Services Config
+using U13.WeatherForecast.MinimalAPI.Configs;
+using U13.WeatherForecast.MinimalAPI.Models;
+using U13.WeatherForecast.MinimalAPI.Models.WeatherForecast;
 using U13.WeatherForecast.MinimalAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<HttpClientSettings>(builder.Configuration.GetSection("HttpClient"));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<HttpClient>();
-builder.Services.AddScoped<IGeoCodingService, GeoCodingService>();
-builder.Services.AddScoped<IWeatherService, WeatherService>();
+builder.Services.AddTransient<HttpClient>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IGeoCodingHttpService, GeoCodingHttpService>();
+builder.Services.AddScoped<IWeatherHttpService, WeatherHttpService>();
+builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
 
 var app = builder.Build();
 #endregion
@@ -23,16 +29,25 @@ app.UseHttpsRedirection();
 
 #region End Points
 
-app.MapGet("/getWeatherForecastByAddress", async (string address, IGeoCodingService geoCodingService, IWeatherService weatherService) =>
+app.MapGet("/getWeatherForecastByAddress", async (string address, IWeatherForecastService weatherForecastService, INotificationService notificationHandlerService) =>
  {
-     var geoCoding = await geoCodingService.GetGeoCodingByAddress(address);
-     var coodinates = geoCoding.Result.AddressMatches?.FirstOrDefault().Coordinates;
-     var gridPoints = await weatherService.GetGridPointByCoordinates(coodinates.X, coodinates.Y);
-     var weatherForecast = await weatherService.GetWeatherForecastByGrid(gridPoints.Properties.GridId, gridPoints.Properties.GridX, gridPoints.Properties.GridY);
-     var WeatherForecastForNowAndNext7Days = weatherForecast.Properties.Periods.Take(8);
-     return Results.Ok(WeatherForecastForNowAndNext7Days);
+     try
+     {
+         IEnumerable<Period> weatherForecastForTheNext7Days = await weatherForecastService.GetWeatherForecastForTheNext7DaysByAddress(address);
+         if (notificationHandlerService.HasNotification())
+             return Results.BadRequest(notificationHandlerService.GetNotifications());
+         else
+             return Results.Ok(weatherForecastForTheNext7Days);
+     }
+     catch
+     {
+         return Results.StatusCode(500);
+     }
  })
-.WithName("GetWeatherForecastByAddress");
+.WithName("GetWeatherForecastByAddress")
+.WithTags("Weather")
+.Produces<IEnumerable<Period>>(StatusCodes.Status200OK)
+.Produces<List<Notification>>(StatusCodes.Status404NotFound);
 
 app.Run();
 

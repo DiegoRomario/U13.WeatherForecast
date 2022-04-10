@@ -2,7 +2,7 @@
 
 namespace U13.WeatherForecast.MinimalAPI.Services
 {
-    public interface IGeoCodingService
+    public interface IGeoCodingHttpService
     {
         Task<GeoCodingResult> GetGeoCodingByAddress(string address);
     }
