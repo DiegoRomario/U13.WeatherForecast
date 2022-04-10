@@ -35,7 +35,7 @@ app.MapGet("/getWeatherForecastByAddress", async (string address, IWeatherForeca
      {
          IEnumerable<Period> weatherForecastForTheNext7Days = await weatherForecastService.GetWeatherForecastForTheNext7DaysByAddress(address);
          if (notificationHandlerService.HasNotification())
-             return Results.BadRequest(notificationHandlerService.GetNotifications());
+             return Results.NotFound(notificationHandlerService.GetNotifications());
          else
              return Results.Ok(weatherForecastForTheNext7Days);
      }

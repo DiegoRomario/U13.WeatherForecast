@@ -8,16 +8,16 @@ namespace U13.WeatherForecast.MinimalAPI.Services
     public class WeatherForecastService : IWeatherForecastService
     {
         private const int CURRENT_PERIOD_AND_NEXT_7_DAYS = 8;
-        private readonly IGeoCodingHttpService geoCodingService;
-        private readonly IWeatherHttpService weatherService;
-        private readonly INotificationService notificationHandlerService;
+        private readonly IGeoCodingHttpService geoCodingHttpService;
+        private readonly IWeatherHttpService weatherHttpService;
+        private readonly INotificationService notificationService;
         private readonly ILogger logger;
 
-        public WeatherForecastService(IGeoCodingHttpService geoCodingService, IWeatherHttpService weatherService, INotificationService notificationHandlerService, ILogger<WeatherForecastService> logger)
+        public WeatherForecastService(IGeoCodingHttpService geoCodingHttpService, IWeatherHttpService weatherHttpService, INotificationService notificationService, ILogger<WeatherForecastService> logger)
         {
-            this.geoCodingService = geoCodingService;
-            this.weatherService = weatherService;
-            this.notificationHandlerService = notificationHandlerService;
+            this.geoCodingHttpService = geoCodingHttpService;
+            this.weatherHttpService = weatherHttpService;
+            this.notificationService = notificationService;
             this.logger = logger;
         }
         public async Task<IEnumerable<Period>> GetWeatherForecastForTheNext7DaysByAddress(string address)
@@ -29,12 +29,12 @@ namespace U13.WeatherForecast.MinimalAPI.Services
                 GridPointsResult gridPoints = await GetGridPointByCoordinates(coodinates);
                 WeatherForecastResult weatherForecast = await GetWeatherForecastByGrid(gridPoints);
 
-                if (notificationHandlerService.HasNotification()) return WeatherForecastForNowAndNext7Days;
+                if (notificationService.HasNotification()) return WeatherForecastForNowAndNext7Days;
 
                 if (weatherForecast is not null)
                     WeatherForecastForNowAndNext7Days = weatherForecast.Properties.Periods.Take(CURRENT_PERIOD_AND_NEXT_7_DAYS);
                 else
-                    await notificationHandlerService.AddNotification(new Notification("Weather Forecast not found"));
+                    await notificationService.AddNotification(new Notification("Weather Forecast not found"));
 
                 return WeatherForecastForNowAndNext7Days;
             }
@@ -48,13 +48,13 @@ namespace U13.WeatherForecast.MinimalAPI.Services
         {
             Coordinates coodinates = default;
 
-            if (notificationHandlerService.HasNotification()) return coodinates;
+            if (notificationService.HasNotification()) return coodinates;
 
-            GeoCodingResult geoCoding = await geoCodingService.GetGeoCodingByAddress(address);
+            GeoCodingResult geoCoding = await geoCodingHttpService.GetGeoCodingByAddress(address);
             if (geoCoding is null)
-                await notificationHandlerService.AddNotification(new Notification("Geo Coding not found"));
+                await notificationService.AddNotification(new Notification("Geo Coding not found"));
             else if (geoCoding.Result.AddressMatches.Count > 1)
-                await notificationHandlerService.AddNotification(new Notification("More than one Geo Coding reference to this address was found"));
+                await notificationService.AddNotification(new Notification("More than one Geo Coding reference to this address was found"));
             else if (geoCoding.Result.AddressMatches.Count == 1)
                 coodinates = geoCoding.Result.AddressMatches.FirstOrDefault().Coordinates;
             return coodinates;
@@ -63,12 +63,12 @@ namespace U13.WeatherForecast.MinimalAPI.Services
         {
             GridPointsResult gridPoints = default;
 
-            if (notificationHandlerService.HasNotification()) return gridPoints;
+            if (notificationService.HasNotification()) return gridPoints;
 
             if (coodinates is not null)
-                gridPoints = await weatherService.GetGridPointByCoordinates(coodinates.X, coodinates.Y);
+                gridPoints = await weatherHttpService.GetGridPointByCoordinates(coodinates.X, coodinates.Y);
             else
-                await notificationHandlerService.AddNotification(new Notification("Coordinates not found"));
+                await notificationService.AddNotification(new Notification("Coordinates not found"));
 
             return gridPoints;
 
@@ -77,12 +77,12 @@ namespace U13.WeatherForecast.MinimalAPI.Services
         {
             WeatherForecastResult weatherForecastResult = default;
 
-            if (notificationHandlerService.HasNotification()) return weatherForecastResult;
+            if (notificationService.HasNotification()) return weatherForecastResult;
 
             if (gridPoints?.Properties is not null)
-                weatherForecastResult = await weatherService.GetWeatherForecastByGrid(gridPoints.Properties.GridId, gridPoints.Properties.GridX, gridPoints.Properties.GridY);
+                weatherForecastResult = await weatherHttpService.GetWeatherForecastByGrid(gridPoints.Properties.GridId, gridPoints.Properties.GridX, gridPoints.Properties.GridY);
             else
-                await notificationHandlerService.AddNotification(new Notification("Grid Points not found"));
+                await notificationService.AddNotification(new Notification("Grid Points not found"));
 
             return weatherForecastResult;
         }
