@@ -5,6 +5,7 @@ using U13.WeatherForecast.MinimalAPI.Models.WeatherForecast;
 using U13.WeatherForecast.MinimalAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddCors();
 builder.Services.Configure<HttpClientSettings>(builder.Configuration.GetSection("HttpClient"));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -19,6 +20,10 @@ var app = builder.Build();
 #endregion
 
 #region Pipeline Config
+app.UseCors(x => x
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
