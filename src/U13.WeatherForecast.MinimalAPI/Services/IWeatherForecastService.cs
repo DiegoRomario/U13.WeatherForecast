@@ -4,6 +4,6 @@ namespace U13.WeatherForecast.MinimalAPI.Services
 {
     public interface IWeatherForecastService
     {
-        Task<IEnumerable<Period>> GetWeatherForecastForTheNext7DaysByAddress(string address);
+        Task<IEnumerable<Period>> GetWeatherForecastFor7DaysByAddress(string address);
     }
 }

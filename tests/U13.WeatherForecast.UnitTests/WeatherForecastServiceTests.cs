@@ -34,14 +34,14 @@ namespace U13.WeatherForecast.UnitTests
             weatherForecastService = new WeatherForecastService(geoCodingHttpServiceMock.Object, weatherHttpServiceMocK.Object, notificationServiceMock.Object, loggerMock.Object);
         }
 
-        [Fact(DisplayName = @"Given that GetWeatherForecastForTheNext7DaysByAddress method is called,
+        [Fact(DisplayName = @"Given that GetWeatherForecastFor7DaysByAddress method is called,
                               When GetGeoCodingByAddress returns more than one address reference
                               The result Should be null and a notification should be raised with an specific message")]
         [Trait("Category", "Unit")]
         public async void GetGeoCodingByAddress_MoreThanOneAddressReference()
         {
             // Arrange & Act
-            var result = await weatherForecastService.GetWeatherForecastForTheNext7DaysByAddress(ANY_ADDRESS);
+            var result = await weatherForecastService.GetWeatherForecastFor7DaysByAddress(ANY_ADDRESS);
             // Assert
             notificationServiceMock.Verify(d => d.AddNotification(It.Is<Notification>(x => x.Message == notification2AddressMatches)), Times.Once);
             Assert.Null(result);

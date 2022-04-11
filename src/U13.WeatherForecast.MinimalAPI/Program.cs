@@ -38,11 +38,11 @@ app.MapGet("/getWeatherForecastByAddress", async (string address, IWeatherForeca
  {
      try
      {
-         IEnumerable<Period> weatherForecastForTheNext7Days = await weatherForecastService.GetWeatherForecastForTheNext7DaysByAddress(address);
+         IEnumerable<Period> weatherForecastFor7Days = await weatherForecastService.GetWeatherForecastFor7DaysByAddress(address);
          if (notificationHandlerService.HasNotification())
              return Results.NotFound(notificationHandlerService.GetNotifications());
          else
-             return Results.Ok(weatherForecastForTheNext7Days);
+             return Results.Ok(weatherForecastFor7Days);
      }
      catch
      {

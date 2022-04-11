@@ -14,10 +14,11 @@ namespace U13.WeatherForecast.IntegrationTests
     public class GetWeatherForecastByAddressTests
     {
         const string GET_WEATHER_FORECAST_BY_ADDRESS_PATH = "/getWeatherForecastByAddress?Address=";
+        const int PERIODS = 14;
 
-        [Theory(DisplayName = @"Given that GetWeatherForecastByAddress end-point is called
+        [Theory(DisplayName = $@"Given that GetWeatherForecastByAddress end-point is called
                                 When it receive a valid address, 
-                                it Should return status code 200 and an IEnumerable of 8 Periods")]
+                                it Should return status code 200 and an IEnumerable of 14 Periods")]
         [InlineData("4600 SILVER HILL RD, WASHINGTON, DC, 20233")]
         [InlineData("5323 W CENTINELA AVE, LOS ANGELES, CA, 90045")]
         [InlineData("252 BROADWAY, SAN DIEGO, CA, 92101")]
@@ -33,7 +34,7 @@ namespace U13.WeatherForecast.IntegrationTests
             var weatherForecastList = JsonSerializer.Deserialize<IEnumerable<Period>>(json);
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(8, weatherForecastList.Count());
+            Assert.Equal(PERIODS, weatherForecastList.Count());
         }
 
         [Theory(DisplayName = @"Given that GetWeatherForecastByAddress end-point is called

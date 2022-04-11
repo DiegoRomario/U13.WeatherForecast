@@ -7,7 +7,6 @@ namespace U13.WeatherForecast.MinimalAPI.Services
 {
     public class WeatherForecastService : IWeatherForecastService
     {
-        private const int CURRENT_PERIOD_AND_NEXT_7_DAYS = 8;
         private readonly IGeoCodingHttpService geoCodingHttpService;
         private readonly IWeatherHttpService weatherHttpService;
         private readonly INotificationService notificationService;
@@ -20,23 +19,23 @@ namespace U13.WeatherForecast.MinimalAPI.Services
             this.notificationService = notificationService;
             this.logger = logger;
         }
-        public async Task<IEnumerable<Period>> GetWeatherForecastForTheNext7DaysByAddress(string address)
+        public async Task<IEnumerable<Period>> GetWeatherForecastFor7DaysByAddress(string address)
         {
             try
             {
-                IEnumerable<Period> WeatherForecastForNowAndNext7Days = default;
+                IEnumerable<Period> WeatherForecastFor7Days = default;
                 Coordinates coodinates = await GetCoordinates(address);
                 GridPointsResult gridPoints = await GetGridPointByCoordinates(coodinates);
                 WeatherForecastResult weatherForecast = await GetWeatherForecastByGrid(gridPoints);
 
-                if (notificationService.HasNotification()) return WeatherForecastForNowAndNext7Days;
+                if (notificationService.HasNotification()) return WeatherForecastFor7Days;
 
                 if (weatherForecast is not null)
-                    WeatherForecastForNowAndNext7Days = weatherForecast.Properties.Periods.Take(CURRENT_PERIOD_AND_NEXT_7_DAYS);
+                    WeatherForecastFor7Days = weatherForecast.Properties.Periods;
                 else
                     await notificationService.AddNotification(new Notification("Weather Forecast not found"));
 
-                return WeatherForecastForNowAndNext7Days;
+                return WeatherForecastFor7Days;
             }
             catch (Exception exception)
             {
